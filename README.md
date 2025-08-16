@@ -34,7 +34,7 @@ A modern, responsive e-commerce platform built with Next.js, React, Tailwind CSS
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/mc-diamondz.git
+   git clone https://github.com/Mista-Val/mc-diamondz.git 
    cd mc-diamondz
    ```
 
