@@ -49,7 +49,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                   <Link href="/">
                     <Image
                       className="h-8 w-auto"
-                      src="/logo.png"
+                      src="/public/images/logo.png"
                       alt="M.C Diamondz Fashion Emporium"
                       width={32}
                       height={32}

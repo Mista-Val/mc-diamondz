@@ -2,94 +2,88 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
-  const featuredProducts = [
-    {
-      id: 1,
-      name: 'African Print Dress',
-      price: '₦25,000',
-      category: 'Clothing',
-      image: '/images/african-dress.jpg',
-      href: '/products/african-print-dress',
-    },
-    {
-      id: 2,
-      name: 'Gold Beaded Necklace',
-      price: '₦15,000',
-      category: 'Jewelry',
-      image: '/images/necklace.jpg',
-      href: '/products/gold-beaded-necklace',
-    },
-    {
-      id: 3,
-      name: 'Ankara Fabric (6 Yards)',
-      price: '₦12,000',
-      category: 'Fabrics',
-      image: '/images/ankara-fabric.jpg',
-      href: '/products/ankara-fabric',
-    },
-  ];
-
   return (
     <div className="bg-white">
       {/* Hero Section */}
       <div className="relative bg-gray-900">
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="relative h-80 overflow-hidden bg-indigo-800 md:absolute md:right-0 md:h-full md:w-1/2 lg:w-2/3">
           <Image
-            src="/images/hero-bg.jpg"
-            alt="African fashion models"
-            className="h-full w-full object-cover object-center opacity-30"
+            src="/images/hero/hero-bg.jpg"
+            alt="African Fashion"
+            className="h-full w-full object-cover object-center"
             width={1920}
             height={1080}
             priority
           />
+          <div className="absolute inset-0 bg-indigo-700 mix-blend-multiply" aria-hidden="true" />
         </div>
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center py-32 px-6 text-center sm:py-40 lg:px-8">
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl lg:text-7xl">
-            Discover African Elegance
-          </h1>
-          <p className="mt-6 max-w-3xl text-xl text-gray-300">
-            Experience the vibrant colors and rich textures of authentic African fashion, jewelry, and accessories
-            curated just for you.
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link
-              href="/shop"
-              className="rounded-md bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Shop Now
-            </Link>
-            <Link href="/about" className="text-base font-medium text-white hover:text-indigo-100">
-              Learn more <span aria-hidden="true">→</span>
-            </Link>
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="md:ml-auto md:w-1/2 md:pl-10">
+            <h2 className="text-base font-semibold uppercase tracking-wider text-gray-300">
+              Premium African Fashion
+            </h2>
+            <p className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Discover Our Latest Collection
+            </p>
+            <p className="mt-3 text-lg text-gray-300">
+              Handcrafted with love and tradition. Explore our unique pieces that celebrate African heritage.
+            </p>
+            <div className="mt-8">
+              <div className="inline-flex rounded-md shadow">
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-indigo-600 hover:bg-gray-50"
+                >
+                  Shop Now
+                  <span className="ml-2">→</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Featured Categories */}
-      <div className="bg-white py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Shop by Category</h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Shop by Category</h2>
             <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-500">
-              Explore our curated collection of authentic African fashion and accessories
+              Discover our curated collection of African fashion and accessories
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { name: 'Jewelry', href: '/categories/jewelry', image: '/images/category-jewelry.jpg' },
-              { name: 'Fabrics', href: '/categories/fabrics', image: '/images/category-fabrics.jpg' },
-              { name: 'Clothing', href: '/categories/clothing', image: '/images/category-clothing.jpg' },
-              { name: 'Hair', href: '/categories/hair', image: '/images/category-hair.jpg' },
+              {
+                name: 'Clothing',
+                href: '/categories/clothing',
+                imageSrc: '/images/categories/clothing.jpg',
+              },
+              {
+                name: 'Jewelry',
+                href: '/categories/jewelry',
+                imageSrc: '/images/categories/jewelry.jpg',
+              },
+              {
+                name: 'Fabrics',
+                href: '/categories/fabrics',
+                imageSrc: '/images/categories/fabrics.jpg',
+              },
+              {
+                name: 'Hair',
+                href: '/categories/hair',
+                imageSrc: '/images/categories/hair.jpg',
+              },
             ].map((category) => (
               <div key={category.name} className="group relative">
                 <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-100 group-hover:opacity-75">
                   <Image
-                    src={category.image}
+                    src={category.imageSrc}
                     alt={category.name}
                     className="h-full w-full object-cover object-center"
-                    width={400}
-                    height={400}
+                    width={300}
+                    height={300}
                   />
                 </div>
                 <h3 className="mt-4 text-center text-lg font-medium text-gray-900">
@@ -105,25 +99,54 @@ export default function Home() {
       </div>
 
       {/* Featured Products */}
-      <div className="bg-gray-50 py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Featured Products</h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Featured Products</h2>
             <p className="mx-auto mt-4 max-w-2xl text-xl text-gray-500">
-              Discover our most popular items this season
+              Handpicked items from our collection
             </p>
           </div>
 
-          <div className="mt-16 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
-            {featuredProducts.map((product) => (
+          <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                id: '1',
+                name: 'African Print Maxi Dress',
+                price: 25000,
+                image: '/images/products/product-1.jpg',
+                href: '/products/african-print-maxi-dress',
+              },
+              {
+                id: '2',
+                name: 'Gold Beaded Necklace',
+                price: 15000,
+                image: '/images/products/necklace.jpg',
+                href: '/products/gold-beaded-necklace',
+              },
+              {
+                id: '3',
+                name: 'Ankara Print Handbag',
+                price: 18000,
+                image: '/images/products/handbag.jpg',
+                href: '/products/ankara-print-handbag',
+              },
+              {
+                id: '4',
+                name: 'Kente Print Scarf',
+                price: 12000,
+                image: '/images/products/scarf.jpg',
+                href: '/products/kente-print-scarf',
+              },
+            ].map((product) => (
               <div key={product.id} className="group relative">
-                <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75">
                   <Image
                     src={product.image}
                     alt={product.name}
-                    className="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                    width={400}
-                    height={500}
+                    className="h-full w-full object-cover object-center"
+                    width={300}
+                    height={300}
                   />
                 </div>
                 <div className="mt-4 flex justify-between">
@@ -134,74 +157,20 @@ export default function Home() {
                         {product.name}
                       </Link>
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">{product.category}</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-900">{product.price}</p>
+                  <p className="text-sm font-medium text-gray-900">₦{product.price.toLocaleString()}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-10 text-center">
             <Link
               href="/shop"
-              className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
             >
-              View all products
+              View All Products
             </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Testimonials */}
-      <div className="bg-white py-16 sm:py-24">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:max-w-none">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl text-center">
-              What Our Customers Say
-            </h2>
-            <div className="mt-16 space-y-12 lg:grid lg:grid-cols-3 lg:gap-x-8 lg:space-y-0">
-              {[
-                {
-                  name: 'Adebisi Johnson',
-                  role: 'Fashion Designer',
-                  content:
-                    'The quality of fabrics from M.C Diamondz is exceptional. Their customer service is top-notch and delivery is always on time.',
-                },
-                {
-                  name: 'Chinwe Okonkwo',
-                  role: 'Loyal Customer',
-                  content:
-                    'I love their jewelry collection! Every piece is unique and beautifully crafted. I get compliments everywhere I go.',
-                },
-                {
-                  name: 'Oluwaseun Adebayo',
-                  role: 'Fashion Enthusiast',
-                  content:
-                    'The Ankara prints are authentic and the colors are vibrant. I highly recommend M.C Diamondz for all your African fashion needs.',
-                },
-              ].map((testimonial) => (
-                <div key={testimonial.name} className="text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="currentColor"
-                    viewBox="0 0 32 32"
-                    aria-hidden="true"
-                  >
-                    <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
-                  </svg>
-                  <figure className="mt-6">
-                    <blockquote className="text-lg font-semibold leading-8 text-gray-900">
-                      <p>"{testimonial.content}"</p>
-                    </blockquote>
-                    <figcaption className="mt-6 text-base">
-                      <div className="font-semibold text-indigo-600">{testimonial.name}</div>
-                      <div className="mt-1 text-gray-500">{testimonial.role}</div>
-                    </figcaption>
-                  </figure>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>

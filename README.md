@@ -7,7 +7,7 @@ A modern, responsive e-commerce platform built with Next.js, React, Tailwind CSS
 - 🛍️ Product catalog with categories and search
 - 🛒 Shopping cart with persistent storage
 - 🔐 User authentication (JWT + OAuth)
-- 💳 Multiple payment gateways (Stripe, PayPal, Flutterwave)
+- 💳 Multiple payment gateways (PayPal, Flutterwave)
 - 📱 Responsive design for all devices
 - ⚡ Fast performance with Next.js
 - 🔄 Real-time inventory management
@@ -19,7 +19,7 @@ A modern, responsive e-commerce platform built with Next.js, React, Tailwind CSS
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, Prisma, PostgreSQL
 - **Authentication**: NextAuth.js (JWT + OAuth)
-- **Payments**: Stripe, PayPal, Flutterwave
+- **Payments**: PayPal, Flutterwave
 - **Database**: PostgreSQL with Prisma ORM
 - **Deployment**: Vercel
 - **CI/CD**: GitHub Actions
@@ -133,10 +133,6 @@ GOOGLE_CLIENT_SECRET=""
 FACEBOOK_CLIENT_ID=""
 FACEBOOK_CLIENT_SECRET=""
 
-# Stripe
-STRIPE_SECRET_KEY=""
-STRIPE_WEBHOOK_SECRET=""
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=""
 
 # PayPal
 PAYPAL_CLIENT_ID=""

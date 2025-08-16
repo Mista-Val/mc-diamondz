@@ -51,14 +51,14 @@ export default function ProductDetail() {
             {/* Image selector */}
             <div className="mx-auto mt-6 hidden w-full max-w-2xl sm:block lg:max-w-none">
               <div className="grid grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map((i) => (
+                {['product-1', 'necklace', 'handbag', 'scarf'].map((imageName, i) => (
                   <div
                     key={i}
                     className="relative flex h-24 cursor-pointer items-center justify-center rounded-md bg-white text-sm font-medium uppercase hover:bg-gray-50"
                   >
                     <Image
-                      src={`/images/product-${i}.jpg`}
-                      alt={`Product image ${i}`}
+                      src={`/products/${imageName}.jpg`}
+                      alt={`Product image ${i + 1}`}
                       className="h-full w-full object-cover object-center"
                       width={200}
                       height={200}
@@ -70,7 +70,7 @@ export default function ProductDetail() {
 
             <div className="aspect-h-1 aspect-w-1 w-full">
               <Image
-                src="/images/product-1.jpg"
+                src={`/products/${product.name.toLowerCase().replace(' ', '-')}.jpg`}
                 alt={product.name}
                 className="h-full w-full object-cover object-center sm:rounded-lg"
                 width={800}
