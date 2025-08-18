@@ -147,12 +147,12 @@ model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique @map("order_number")
   userId          String      @map("user_id")
+  addressId       String      @map("address_id")
   status          OrderStatus @default(PENDING)
   subtotal        Float
   shipping        Float
   tax             Float       @default(0)
   total           Float
-  shippingAddress Json        @map("shipping_address")
   billingAddress  Json?       @map("billing_address")
   paymentMethod   String      @map("payment_method")
   paymentStatus   String      @default("pending") @map("payment_status")
@@ -161,6 +161,7 @@ model Order {
   shippingMethod  String?     @map("shipping_method")
   notes           String?     @db.Text
   user            User        @relation(fields: [userId], references: [id])
+  address         Address     @relation(fields: [addressId], references: [id])
   items           OrderItem[]
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
 import { authOptions } from '@/lib/auth';
 import { createErrorResponse, createNotFoundError, createForbiddenError } from '@/types/error';
 
-// Input validation schemas
+// Validation schema for updates
 const updateCategorySchema = z.object({
   name: z.string().min(1, 'Name is required').max(100).optional(),
   description: z.string().max(500).optional().nullable(),
@@ -15,65 +16,44 @@ const updateCategorySchema = z.object({
   isFeatured: z.boolean().optional(),
   order: z.number().int().min(0).optional(),
   metadata: z.record(z.any()).optional().nullable(),
-}).refine(
-  (data) => {
-    // Ensure a category is not set as its own parent
-    if (data.parentId === undefined) return true;
-    return data.parentId !== data.id;
-  },
-  {
-    message: 'A category cannot be its own parent',
-    path: ['parentId'],
-  }
-);
+});
 
-// Generate a URL-friendly slug from a string
+// Generate a slug from a name
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '') // Remove non-word chars
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/[^\w\s-]/g, '') // Remove invalid chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphen
+    .replace(/--+/g, '-') // Collapse multiple hyphens
     .trim();
 }
 
-// GET /api/categories/[id] - Get a single category by ID
+/**
+ * GET /api/categories/[id]
+ * Get category details with parent, children, and counts
+ */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const { id } = params;
 
-    // Find the category with its parent and children
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
-        parent: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
+        parent: { select: { id: true, name: true, slug: true } },
         children: {
           select: {
             id: true,
             name: true,
             slug: true,
             image: true,
-            _count: {
-              select: { products: true },
-            },
+            _count: { select: { products: true } },
           },
           orderBy: { order: 'asc' },
         },
-        _count: {
-          select: {
-            products: true,
-            children: true,
-          },
-        },
+        _count: { select: { products: true, children: true } },
       },
     });
 
@@ -94,24 +74,24 @@ export async function GET(
   }
 }
 
-// PATCH /api/categories/[id] - Update a category
+/**
+ * PATCH /api/categories/[id]
+ * Update a category (Admin only)
+ */
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
-    // Check if user is authenticated and has admin role
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json(createForbiddenError('Insufficient permissions'), { status: 403 });
     }
 
     const { id } = params;
     const body = await request.json();
-
-    // Validate request body
     const validation = updateCategorySchema.safeParse(body);
+
     if (!validation.success) {
       return NextResponse.json(
         createErrorResponse(validation.error, {
@@ -123,41 +103,34 @@ export async function PATCH(
     }
 
     const data = validation.data;
-    const updateData: any = { ...data };
+    const updateData: Prisma.CategoryUpdateInput = { ...data };
 
-    // If name is being updated, generate a new slug
+    // If name is updated, regenerate slug
     if (data.name) {
       updateData.slug = generateSlug(data.name);
     }
 
     // Check if category exists
-    const existingCategory = await prisma.category.findUnique({
-      where: { id },
-    });
-
+    const existingCategory = await prisma.category.findUnique({ where: { id } });
     if (!existingCategory) {
       return NextResponse.json(createNotFoundError('Category not found'), { status: 404 });
     }
 
-    // Check for circular reference in parentId
+    // Prevent self-parent assignment
+    if (data.parentId && data.parentId === id) {
+      return NextResponse.json(
+        createErrorResponse(new Error('A category cannot be its own parent'), {
+          defaultMessage: 'Validation failed',
+          defaultStatus: 400,
+        }),
+        { status: 400 }
+      );
+    }
+
+    // Ensure parent is valid and not a descendant
     if (data.parentId) {
-      if (data.parentId === id) {
-        return NextResponse.json(
-          createErrorResponse(new Error('A category cannot be its own parent'), {
-            defaultMessage: 'Validation failed',
-            defaultStatus: 400,
-          }),
-          { status: 400 }
-        );
-      }
-
-      // Check if the parent exists and is not a descendant of this category
-      const parentCategory = await prisma.category.findUnique({
-        where: { id: data.parentId },
-        include: { children: { select: { id: true } } },
-      });
-
-      if (!parentCategory) {
+      const parentExists = await prisma.category.findUnique({ where: { id: data.parentId } });
+      if (!parentExists) {
         return NextResponse.json(
           createErrorResponse(new Error('Parent category not found'), {
             defaultMessage: 'Validation failed',
@@ -167,11 +140,10 @@ export async function PATCH(
         );
       }
 
-      // Check for circular reference (prevent making a category a child of its own descendant)
       const isDescendant = await isCategoryDescendant(data.parentId, id);
       if (isDescendant) {
         return NextResponse.json(
-          createErrorResponse(new Error('Cannot set a category as a child of its own descendant'), {
+          createErrorResponse(new Error('Cannot set category as a child of its own descendant'), {
             defaultMessage: 'Validation failed',
             defaultStatus: 400,
           }),
@@ -180,33 +152,25 @@ export async function PATCH(
       }
     }
 
-    // Update the category
+    // Update category
     const updatedCategory = await prisma.category.update({
       where: { id },
       data: updateData,
       include: {
-        parent: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        _count: {
-          select: {
-            products: true,
-            children: true,
-          },
-        },
+        parent: { select: { id: true, name: true, slug: true } },
+        _count: { select: { products: true, children: true } },
       },
     });
 
     return NextResponse.json({ category: updatedCategory });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating category:', error);
-    
-    // Handle Prisma unique constraint violation (duplicate slug)
-    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      error.meta?.target?.includes('slug')
+    ) {
       return NextResponse.json(
         createErrorResponse(error, {
           defaultMessage: 'A category with this name already exists',
@@ -226,43 +190,34 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/categories/[id] - Delete a category
+/**
+ * DELETE /api/categories/[id]
+ * Delete a category if empty (Admin only)
+ */
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
-    // Check if user is authenticated and has admin role
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json(createForbiddenError('Insufficient permissions'), { status: 403 });
     }
 
     const { id } = params;
-
-    // Check if category exists
     const category = await prisma.category.findUnique({
       where: { id },
-      include: {
-        _count: {
-          select: {
-            products: true,
-            children: true,
-          },
-        },
-      },
+      include: { _count: { select: { products: true, children: true } } },
     });
 
     if (!category) {
       return NextResponse.json(createNotFoundError('Category not found'), { status: 404 });
     }
 
-    // Prevent deletion if category has products or subcategories
     if (category._count.products > 0) {
       return NextResponse.json(
         createErrorResponse(new Error('Cannot delete category with products'), {
-          defaultMessage: 'Cannot delete a category that contains products',
+          defaultMessage: 'Category contains products',
           defaultStatus: 400,
         }),
         { status: 400 }
@@ -272,19 +227,15 @@ export async function DELETE(
     if (category._count.children > 0) {
       return NextResponse.json(
         createErrorResponse(new Error('Cannot delete category with subcategories'), {
-          defaultMessage: 'Cannot delete a category that has subcategories',
+          defaultMessage: 'Category contains subcategories',
           defaultStatus: 400,
         }),
         { status: 400 }
       );
     }
 
-    // Delete the category
-    await prisma.category.delete({
-      where: { id },
-    });
-
-    return new Response(null, { status: 204 });
+    await prisma.category.delete({ where: { id } });
+    return NextResponse.json({ success: true, message: 'Category deleted' }, { status: 200 });
   } catch (error) {
     console.error('Error deleting category:', error);
     return NextResponse.json(
@@ -298,33 +249,25 @@ export async function DELETE(
 }
 
 /**
- * Check if a category is a descendant of another category
+ * Utility: check if parentId is a descendant of childId
  */
 async function isCategoryDescendant(parentId: string, childId: string): Promise<boolean> {
   let currentId = parentId;
   const visited = new Set<string>();
-  
-  // Prevent infinite loops in case of circular references
+
   while (currentId && !visited.has(currentId)) {
     visited.add(currentId);
-    
-    // If we find the child category while traversing up the tree, it's a descendant
-    if (currentId === childId) {
-      return true;
-    }
-    
-    // Get the parent of the current category
+
+    if (currentId === childId) return true;
+
     const category = await prisma.category.findUnique({
       where: { id: currentId },
       select: { parentId: true },
     });
-    
-    if (!category || !category.parentId) {
-      break;
-    }
-    
+
+    if (!category?.parentId) break;
     currentId = category.parentId;
   }
-  
+
   return false;
 }

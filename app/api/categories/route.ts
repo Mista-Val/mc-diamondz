@@ -5,29 +5,48 @@ import { getServerSession } from 'next-auth';
 import { handleApiError, successResponse } from '@/lib/api/response';
 import { z } from 'zod';
 
-// Input validation schemas
+/**
+ * Validation schema for creating a category
+ */
 const createCategorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  parentId: z.string().optional().nullable(),
+  description: z.string().max(500).optional().nullable(),
+  parentId: z.string().uuid('Invalid parent category ID').optional().nullable(),
   image: z.string().url('Invalid image URL').optional().nullable(),
   isActive: z.boolean().default(true),
-  order: z.number().int().default(0),
-  metadata: z.record(z.any()).optional(),
+  order: z.number().int().min(0).default(0),
+  metadata: z.record(z.any()).optional().nullable(),
 });
 
-// GET /api/categories - Get all categories with optional filtering
+/**
+ * Utility: Generate a slug from a name
+ */
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove invalid chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphen
+    .replace(/--+/g, '-') // Collapse multiple hyphens
+    .trim();
+}
+
+/**
+ * GET /api/categories
+ * List categories (with optional parentId, active/inactive filter)
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const parentId = searchParams.get('parentId');
     const includeInactive = searchParams.get('includeInactive') === 'true';
-    
+
     const categories = await prisma.category.findMany({
       where: {
-        ...(parentId === 'null' || parentId === null 
-          ? { parentId: null } 
-          : parentId ? { parentId } : {}),
+        ...(parentId === 'null'
+          ? { parentId: null }
+          : parentId
+          ? { parentId }
+          : {}),
         ...(includeInactive ? {} : { isActive: true }),
       },
       include: {
@@ -35,42 +54,36 @@ export async function GET(request: Request) {
           select: { products: true, children: true },
         },
       },
-      orderBy: [
-        { order: 'asc' },
-        { name: 'asc' },
-      ],
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
     });
 
     return successResponse({ categories });
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, {
+      defaultMessage: 'Failed to fetch categories',
+    });
   }
 }
 
-// POST /api/categories - Create a new category (admin only)
+/**
+ * POST /api/categories
+ * Create a new category (Admin only)
+ */
 export async function POST(request: Request) {
   try {
-    // Check authentication
+    // Auth check
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Check if user is admin
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Parse and validate request body
+    // Parse + validate
     const body = await request.json();
     const validation = createCategorySchema.safeParse(body);
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Validation error', details: validation.error.format() },
@@ -79,20 +92,10 @@ export async function POST(request: Request) {
     }
 
     const data = validation.data;
-    
-    // Generate slug from name
-    const slug = data.name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/--+/g, '-')
-      .trim();
+    const slug = generateSlug(data.name);
 
-    // Check if category with same slug already exists
-    const existingCategory = await prisma.category.findUnique({
-      where: { slug },
-    });
-
+    // Ensure slug is unique
+    const existingCategory = await prisma.category.findUnique({ where: { slug } });
     if (existingCategory) {
       return NextResponse.json(
         { error: 'A category with this name already exists' },
@@ -100,12 +103,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // If parentId is provided, verify it exists
+    // If parentId provided, verify existence
     if (data.parentId) {
       const parentCategory = await prisma.category.findUnique({
         where: { id: data.parentId },
       });
-
       if (!parentCategory) {
         return NextResponse.json(
           { error: 'Parent category not found' },
@@ -114,12 +116,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create the category
+    // Create category
     const category = await prisma.category.create({
-      data: {
-        ...data,
-        slug,
-      },
+      data: { ...data, slug },
     });
 
     return successResponse(
@@ -128,6 +127,8 @@ export async function POST(request: Request) {
       201
     );
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, {
+      defaultMessage: 'Failed to create category',
+    });
   }
 }

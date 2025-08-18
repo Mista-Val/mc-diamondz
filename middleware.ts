@@ -1,72 +1,78 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { auth } from '@/auth';
+import { verifyCsrfToken } from '@/lib/security/csrf';
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Public paths that don't require authentication
-  const publicPaths = [
-    '/',
-    '/shop',
-    '/products',
-    '/categories',
-    '/auth/signin',
-    '/auth/signup',
-    '/auth/forgot-password',
-    '/auth/reset-password',
-    '/api/auth',
-    '/_next',
-    '/favicon.ico',
-  ];
+// List of paths that require CSRF protection
+const CSRF_PROTECTED_PATHS = [
+  '/api/auth/register',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/profile',
+  '/api/auth/verify-email',
+];
 
-  // Check if the current path is public
-  const isPublicPath = publicPaths.some(path => 
+// List of public paths that don't require authentication
+const PUBLIC_PATHS = [
+  '/auth/signin',
+  '/auth/error',
+  '/auth/verify-email',
+  '/auth/reset-password',
+  '/api/auth/signin',
+  '/api/auth/csrf',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/verify-email',
+];
+
+// Check if the path requires CSRF protection
+function requiresCsrfProtection(pathname: string): boolean {
+  return CSRF_PROTECTED_PATHS.some(path => 
     pathname === path || pathname.startsWith(`${path}/`)
   );
+}
 
-  // Get the token from the request
-  const token = await getToken({ 
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET 
-  });
+// Check if the path is public
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(path => 
+    pathname === path || pathname.startsWith(`${path}/`)
+  );
+}
 
-  // Redirect to login if trying to access protected routes without authentication
-  if (!isPublicPath && !token) {
-    const url = new URL('/auth/signin', request.url);
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (token) {
-    const authPages = ['/auth/signin', '/auth/signup', '/auth/forgot-password'];
-    if (authPages.some(page => pathname.startsWith(page))) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+  const session = await auth();
+  
+  // Handle CSRF protection for protected API routes
+  if (requiresCsrfProtection(pathname)) {
+    // Skip CSRF check for GET requests
+    if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'OPTIONS') {
+      const csrfToken = request.headers.get('x-csrf-token') || 
+                       new URL(request.url).searchParams.get('_csrf');
+      
+      if (!verifyCsrfToken(csrfToken)) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Invalid CSRF token' }), 
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
   }
 
-  // Apply CORS headers for API routes
-  if (pathname.startsWith('/api/')) {
-    const response = NextResponse.next();
-    
-    // Set CORS headers
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    // Handle preflight requests
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, { status: 200 });
-    }
-    
-    return response;
+  // Handle authentication for protected routes
+  if (!isPublicPath(pathname) && !session) {
+    const signInUrl = new URL('/auth/signin', request.url);
+    signInUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  // For authenticated users trying to access auth pages, redirect to home
+  if (session && (pathname.startsWith('/auth/signin') || pathname.startsWith('/auth/register'))) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configure which paths should be processed by the middleware
 export const config = {
   matcher: [
     /*
@@ -76,6 +82,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|json)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
