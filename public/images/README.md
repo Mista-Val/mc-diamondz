@@ -1,6 +1,6 @@
 # Image Assets
 
-This directory contains all static image assets for the M.C Diamondz Fashion Emporium website.
+This directory contains all static image assets for the Sparkles & Styles hub Fashion Emporium website.
 
 ## Directory Structure
 

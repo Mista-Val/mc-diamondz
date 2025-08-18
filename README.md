@@ -1,4 +1,4 @@
-# M.C Diamondz Fashion Emporium
+# Sparkles & Styles hub Fashion Emporium
 
 A modern, responsive e-commerce platform built with Next.js, React, Tailwind CSS, and Prisma.
 
@@ -34,8 +34,8 @@ A modern, responsive e-commerce platform built with Next.js, React, Tailwind CSS
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Mista-Val/mc-diamondz.git 
-   cd mc-diamondz
+   git clone https://github.com/Mista-Val/sparkles-styles-hub.git 
+   cd sparkles-styles-hub
    ```
 
 2. **Install dependencies**
@@ -121,7 +121,7 @@ Create a `.env.local` file in the root directory and add the following variables
 
 ```env
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/mc_diamondz?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/sparkles_styles_hub?schema=public"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -153,7 +153,7 @@ AWS_BUCKET_NAME=""
 
 # Email (using SendGrid)
 SENDGRID_API_KEY=""
-EMAIL_FROM="noreply@mcdiamondz.com"
+EMAIL_FROM="noreply@sparklesstyleshub.com"
 ```
 
 ## Deployment
@@ -181,7 +181,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For support, email support@mcdiamondz.com or open an issue in the GitHub repository.
+For support, email support@sparklesstyleshub.com or open an issue in the GitHub repository.
 
 ## Admin Dashboard
 
@@ -215,8 +215,8 @@ For support, email support@mcdiamondz.com or open an issue in the GitHub reposit
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/mc-diamondz.git
-   cd mc-diamondz
+   git clone https://github.com/your-username/sparkles-styles-hub.git
+   cd sparkles-styles-hub
    ```
 
 2. **Install dependencies**

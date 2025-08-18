@@ -1,21 +1,22 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 import ClientLayout from './ClientLayout';
 
 export const metadata: Metadata = {
-  title: 'M.C Diamondz Fashion Emporium',
+  title: 'Sparkles & Styles hub Fashion Emporium',
   description: 'Your premier destination for African fashion, jewelry, and accessories',
   keywords: 'African fashion, Jewelry, African clothing, Fashion accessories, African prints',
-  viewport: 'width=device-width, initial-scale=1',
   icons: {
     icon: '/favicon.ico',
   },
 };
 
-export const viewport = {
-  width: "device-width",
+export const viewport: Viewport = {
+  width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

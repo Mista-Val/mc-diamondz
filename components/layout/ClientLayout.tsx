@@ -18,7 +18,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <CartProvider>
       <Navbar onCartClick={() => setIsCartOpen(true)} />
-      <main className="flex-grow">
+      <main className="flex-grow pt-16">
         {children}
       </main>
       <Footer />

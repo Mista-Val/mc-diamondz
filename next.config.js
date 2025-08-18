@@ -1,14 +1,20 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
   images: {
-    domains: ['localhost'], // Add your image domains here
+    path: '/_next/image',
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+    ],
   },
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, './'),
-    };
+  webpack(config) {
+    config.resolve.alias['@'] = path.join(__dirname, './');
     return config;
   },
 };

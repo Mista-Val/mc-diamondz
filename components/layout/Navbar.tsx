@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, ShoppingCartIcon, UserIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -26,16 +26,36 @@ type NavbarProps = {
 
 export default function Navbar({ onCartClick }: NavbarProps) {
   const { itemCount } = useCart();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <Disclosure as="nav" className="bg-white shadow">
+    <Disclosure
+      as="nav"
+      className={classNames(
+        'fixed w-full z-20 top-0 start-0 transition-all duration-300',
+        isScrolled ? 'bg-white shadow' : 'bg-transparent'
+      )}
+    >
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                 {/* Mobile menu button */}
-                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                <Disclosure.Button
+                  className={classNames(
+                    'inline-flex items-center justify-center rounded-md p-2',
+                    isScrolled || open ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
+                  )}
+                >
                   <span className="sr-only">Open main menu</span>
                   {open ? (
                     <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -49,8 +69,8 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                   <Link href="/">
                     <Image
                       className="h-8 w-auto"
-                      src="/public/images/logo.png"
-                      alt="M.C Diamondz Fashion Emporium"
+                      src="/images/logo.png"
+                      alt="Sparkles & Styles Fashion Emporium"
                       width={32}
                       height={32}
                     />
@@ -63,8 +83,12 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                         key={item.name}
                         href={item.href}
                         className={classNames(
-                          item.current ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                          'rounded-md px-3 py-2 text-sm font-medium'
+                          item.current
+                            ? 'bg-indigo-600 text-white'
+                            : isScrolled
+                            ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                            : 'text-white hover:bg-white/10 hover:text-white',
+                          'rounded-md px-3 py-2 text-sm font-medium transition-colors'
                         )}
                         aria-current={item.current ? 'page' : undefined}
                       >
@@ -77,7 +101,10 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                 <button
                   type="button"
-                  className="rounded-full bg-white p-1 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative"
+                  className={classNames(
+                    'rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative transition-colors',
+                    isScrolled ? 'bg-white text-gray-700 hover:text-gray-900' : 'bg-transparent text-white hover:text-white/80'
+                  )}
                   onClick={onCartClick}
                 >
                   <span className="sr-only">View cart</span>
@@ -94,7 +121,12 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                   <div>
                     <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
-                      <UserIcon className="h-8 w-8 rounded-full bg-gray-100 p-1.5 text-gray-700" />
+                      <UserIcon
+                        className={classNames(
+                          'h-8 w-8 rounded-full p-1.5 transition-colors',
+                          isScrolled ? 'bg-gray-100 text-gray-700' : 'bg-white/10 text-white'
+                        )}
+                      />
                     </Menu.Button>
                   </div>
                   <Transition
@@ -154,7 +186,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                   as="a"
                   href={item.href}
                   className={classNames(
-                    item.current ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                    item.current ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
                     'block rounded-md px-3 py-2 text-base font-medium'
                   )}
                   aria-current={item.current ? 'page' : undefined}

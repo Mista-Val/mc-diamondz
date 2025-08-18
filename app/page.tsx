@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { products } from '@/lib/data';
 
 export default function Home() {
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -99,7 +102,7 @@ export default function Home() {
       </div>
 
       {/* Featured Products */}
-      <div className="bg-gray-50">
+      <div className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Featured Products</h2>
@@ -109,36 +112,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                id: '1',
-                name: 'African Print Maxi Dress',
-                price: 25000,
-                image: '/images/products/product-1.jpg',
-                href: '/products/african-print-maxi-dress',
-              },
-              {
-                id: '2',
-                name: 'Gold Beaded Necklace',
-                price: 15000,
-                image: '/images/products/necklace.jpg',
-                href: '/products/gold-beaded-necklace',
-              },
-              {
-                id: '3',
-                name: 'Ankara Print Handbag',
-                price: 18000,
-                image: '/images/products/handbag.jpg',
-                href: '/products/ankara-print-handbag',
-              },
-              {
-                id: '4',
-                name: 'Kente Print Scarf',
-                price: 12000,
-                image: '/images/products/scarf.jpg',
-                href: '/products/kente-print-scarf',
-              },
-            ].map((product) => (
+            {featuredProducts.map((product) => (
               <div key={product.id} className="group relative">
                 <div className="aspect-h-1 aspect-w-1 overflow-hidden rounded-lg bg-gray-200 group-hover:opacity-75">
                   <Image
@@ -152,7 +126,7 @@ export default function Home() {
                 <div className="mt-4 flex justify-between">
                   <div>
                     <h3 className="text-sm text-gray-700">
-                      <Link href={product.href}>
+                      <Link href={`/products/${product.id}`}>
                         <span aria-hidden="true" className="absolute inset-0" />
                         {product.name}
                       </Link>

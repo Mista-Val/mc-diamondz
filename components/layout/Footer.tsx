@@ -21,8 +21,8 @@ const navigation = {
     { name: 'Shipping & Returns', href: '/shipping-returns' },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Terms of Service', href: '/terms-of-service' },
     { name: 'Refund Policy', href: '/refund-policy' },
   ],
   social: [
@@ -59,7 +59,7 @@ export default function Footer() {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8 xl:col-span-1">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold">M.C Diamondz</span>
+              <span className="text-2xl font-bold">Sparkles & Styles</span>
             </Link>
             <p className="text-base text-gray-300">
               Your premier destination for African fashion, jewelry, and accessories. Quality products with authentic designs.
@@ -148,7 +148,7 @@ export default function Footer() {
               />
             </div>
             <p className="mt-8 text-base text-gray-400 md:order-1 md:mt-0">
-              &copy; {new Date().getFullYear()} M.C Diamondz Fashion Emporium. All rights reserved.
+              &copy; {new Date().getFullYear()} Sparkles & Styles. All rights reserved.
             </p>
           </div>
         </div>
