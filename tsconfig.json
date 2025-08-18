@@ -5,11 +5,10 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -17,6 +16,9 @@
     "plugins": [
       {
         "name": "next"
+      },
+      {
+        "name": "typescript-plugin-css-modules"
       }
     ],
     "paths": {
@@ -26,10 +28,15 @@
       "@/styles/*": ["./styles/*"],
       "@/types/*": ["./types/*"],
       "@/prisma/*": ["./prisma/*"],
-      "@/tests/*": ["./tests/*"]
+      "@/tests/*": ["./tests/*"],
+      "@/app/*": ["./app/*"],
+      "@/context/*": ["./context/*"],
+      "@/emails/*": ["./emails/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/public/*": ["./public/*"]
     },
+    "types": ["node", "jest", "@testing-library/jest-dom"],
     "typeRoots": ["./node_modules/@types", "./types"],
-    "types": ["jest", "node"],
     "baseUrl": "."
   },
   "include": [
@@ -37,14 +44,24 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "tests/**/*.ts",
-    "tests/**/*.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "**/__tests__/**/*.ts",
+    "**/__tests__/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
   ],
-  "exclude": ["node_modules"],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "**/node_modules/*",
+    "**/.next/*",
+    "**/cypress/*",
+    "**/coverage/*"
+  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"

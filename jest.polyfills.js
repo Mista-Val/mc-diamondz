@@ -1,7 +1,50 @@
-// jest.polyfills.js
+// Polyfills for Jest to work with Next.js
 
-// Mock window.scrollTo
-global.scrollTo = jest.fn();
+// Mock window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // Deprecated
+    removeListener: jest.fn(), // Deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
+// Mock ResizeObserver
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserverStub;
+
+// Mock scrollTo
+window.scrollTo = jest.fn();
+
+// Mock IntersectionObserver
+class IntersectionObserverStub {
+  constructor() {}
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.IntersectionObserver = IntersectionObserverStub;
+
+// Mock requestIdleCallback
+window.requestIdleCallback = (fn) => {
+  return setTimeout(() => fn({ didTimeout: false }), 0);
+};
+
+window.cancelIdleCallback = (id) => {
+  clearTimeout(id);
+};
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -45,87 +88,7 @@ Object.defineProperty(window, 'sessionStorage', {
   value: sessionStorageMock,
 });
 
-// Mock requestAnimationFrame
-global.requestAnimationFrame = (callback) => {
-  return setTimeout(callback, 0);
-};
-
-global.cancelAnimationFrame = (id) => {
-  clearTimeout(id);
-};
-
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
-
-// Mock IntersectionObserver
-class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  takeRecords() {}
-  unobserve() {}
-}
-
-Object.defineProperty(window, 'IntersectionObserver', {
-  writable: true,
-  configurable: true,
-  value: IntersectionObserver,
-});
-
-Object.defineProperty(global, 'IntersectionObserver', {
-  writable: true,
-  configurable: true,
-  value: IntersectionObserver,
-});
-
-// Mock ResizeObserver
-class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-}
-
-Object.defineProperty(window, 'ResizeObserver', {
-  writable: true,
-  configurable: true,
-  value: ResizeObserver,
-});
-
-// Mock crypto
-Object.defineProperty(global.self, 'crypto', {
-  value: {
-    getRandomValues: (arr) => require('crypto').randomBytes(arr.length),
-  },
-});
-
-// Mock URL.createObjectURL
-if (typeof window.URL.createObjectURL === 'undefined') {
-  Object.defineProperty(window.URL, 'createObjectURL', {
-    value: jest.fn(),
-  });
-}
-
-// Mock window.URL
-if (typeof window.URL.revokeObjectURL === 'undefined') {
-  Object.defineProperty(window.URL, 'revokeObjectURL', {
-    value: jest.fn(),
-  });
-}
-
-// Add fetch mock
+// Mock fetch
 global.fetch = jest.fn(() =>
   Promise.resolve({
     ok: true,
@@ -134,35 +97,48 @@ global.fetch = jest.fn(() =>
   })
 );
 
-// Mock next/router
-jest.mock('next/router', () => ({
-  useRouter() {
-    return {
-      route: '/',
-      pathname: '',
-      query: {},
-      asPath: '',
-      push: jest.fn(),
-      events: {
-        on: jest.fn(),
-        off: jest.fn(),
-      },
-      beforePopState: jest.fn(() => null),
-      prefetch: jest.fn(() => Promise.resolve()),
-    };
-  },
-}));
+// Mock console methods to reduce test noise
+const originalConsole = { ...console };
+const filterOutExpectedWarnings = (message) => {
+  const suppressedMessages = [
+    'React does not recognize the `%s` prop on a DOM element',
+    'Unknown event handler property',
+    'validateDOMNesting',
+    'Deprecation warning:',
+    'Please use the `%s` component instead',
+    'The meta %s is specified multiple times',
+    'Using kebab-case for css properties',
+  ];
 
-// Mock next/head
-jest.mock('next/head', () => {
-  return {
-    __esModule: true,
-    default: ({
-      children,
-    }: {
-      children: Array<React.ReactElement>;
-    }) => {
-      return <>{children}</>;
-    },
+  return suppressedMessages.some((suppressedMessage) =>
+    typeof message === 'string' && message.includes(suppressedMessage)
+  );
+};
+
+// Override console methods to filter out expected warnings
+['error', 'warn'].forEach((method) => {
+  const originalMethod = console[method];
+  console[method] = (...args) => {
+    if (!filterOutExpectedWarnings(args[0])) {
+      originalMethod.apply(console, args);
+    }
   };
+});
+
+// Restore original console methods after tests
+beforeEach(() => {
+  global.fetch.mockClear();
+  localStorageMock.clear();
+  sessionStorageMock.clear();
+  jest.clearAllMocks();
+});
+
+afterAll(() => {
+  // Restore original console methods
+  Object.defineProperty(console, 'error', {
+    value: originalConsole.error,
+  });
+  Object.defineProperty(console, 'warn', {
+    value: originalConsole.warn,
+  });
 });

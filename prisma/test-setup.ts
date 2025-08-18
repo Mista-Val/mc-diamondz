@@ -11,7 +11,8 @@ const prismaBinary = join(
   'prisma'
 );
 
-const testDatabaseUrl = 'file:./test.db';
+// Use a test database URL for PostgreSQL
+const testDatabaseUrl = process.env.TEST_DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/mc_diamondz_test';
 
 // Set the test database URL
 process.env.DATABASE_URL = testDatabaseUrl;
@@ -25,25 +26,44 @@ const prisma = new PrismaClient({
   },
 });
 
+// Generate a unique test database name to avoid conflicts
+const generateTestDatabaseName = () => {
+  return `test_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+};
+
 // Run migrations on the test database
 beforeAll(async () => {
   try {
-    // Reset the test database
-    execSync(`${prismaBinary} migrate reset --force`, {
-      env: {
-        ...process.env,
-        DATABASE_URL: testDatabaseUrl,
+    // Create a new test database
+    const testDbName = generateTestDatabaseName();
+    
+    // Connect to the default database to create a new test database
+    const setupPrisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: 'postgresql://postgres:postgres@localhost:5432/postgres',
+        },
       },
-      stdio: 'pipe',
     });
 
-    // Apply migrations
+    try {
+      await setupPrisma.$executeRawUnsafe(`DROP DATABASE IF EXISTS ${testDbName}`);
+      await setupPrisma.$executeRawUnsafe(`CREATE DATABASE ${testDbName}`);
+    } finally {
+      await setupPrisma.$disconnect();
+    }
+
+    // Update the database URL to use the new test database
+    const testDbUrl = `postgresql://postgres:postgres@localhost:5432/${testDbName}`;
+    process.env.DATABASE_URL = testDbUrl;
+
+    // Apply migrations to the test database
     execSync(`${prismaBinary} migrate deploy`, {
       env: {
         ...process.env,
-        DATABASE_URL: testDatabaseUrl,
+        DATABASE_URL: testDbUrl,
       },
-      stdio: 'pipe',
+      stdio: 'inherit',
     });
   } catch (error) {
     console.error('Failed to set up test database:', error);
@@ -53,26 +73,45 @@ beforeAll(async () => {
 
 // Clean up after all tests are done
 afterAll(async () => {
-  await prisma.$disconnect();
+  try {
+    // Disconnect the Prisma client
+    await prisma.$disconnect();
+    
+    // Drop the test database
+    const testDbName = process.env.DATABASE_URL?.split('/').pop();
+    if (testDbName) {
+      const cleanupPrisma = new PrismaClient({
+        datasources: {
+          db: {
+            url: 'postgresql://postgres:postgres@localhost:5432/postgres',
+          },
+        },
+      });
+      
+      try {
+        await cleanupPrisma.$executeRawUnsafe(`DROP DATABASE IF EXISTS ${testDbName}`);
+      } finally {
+        await cleanupPrisma.$disconnect();
+      }
+    }
+  } catch (error) {
+    console.error('Error during test database cleanup:', error);
+  }
 });
 
 // Clean up the database between tests
 afterEach(async () => {
-  // Delete all data from the test database
-  const tablenames = await prisma.$queryRaw<
-    Array<{ tablename: string }>
-  >`SELECT tablename FROM pg_tables WHERE schemaname='public'`;
+  const tables = await prisma.$queryRaw`
+    SELECT tablename 
+    FROM pg_tables 
+    WHERE schemaname = 'public'
+    AND tablename != '_prisma_migrations';
+  `;
 
-  const tables = tablenames
-    .map(({ tablename }) => `"public"."${tablename}"`)
-    .join(', ');
-
-  try {
-    if (tables.length > 0) {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} CASCADE;`);
-    }
-  } catch (error) {
-    console.error('Error cleaning up test database:', error);
+  for (const table of tables as { tablename: string }[]) {
+    await prisma.$executeRawUnsafe(
+      `TRUNCATE TABLE "${table.tablename}" CASCADE;`
+    );
   }
 });
 

@@ -1,10 +1,11 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, User, UserRole } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-export interface TestUser {
+export interface TestUser extends Partial<User> {
   id: string;
   email: string;
   password: string;
@@ -14,31 +15,50 @@ export interface TestUser {
 }
 
 /**
+ * Get a CSRF token for testing authenticated requests
+ */
+export async function getCsrfToken(): Promise<string> {
+  try {
+    const response = await fetch(`${baseUrl}/api/csrf`, {
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get CSRF token: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.csrfToken;
+  } catch (error) {
+    console.error('Error getting CSRF token:', error);
+    throw error;
+  }
+}
+
+/**
  * Create a test user in the database
  */
 export async function createTestUser(
   userData: Partial<TestUser> = {}
 ): Promise<TestUser> {
-  const testUser = {
+  const testUser: TestUser = {
     id: randomUUID(),
     email: `test-${randomUUID()}@example.com`,
     password: 'password123',
     name: 'Test User',
-    role: UserRole.USER,
+    role: 'USER',
     emailVerified: new Date(),
     ...userData,
   };
 
-  // Hash the password
   const hashedPassword = await hash(testUser.password, 12);
-
-  // Create the user in the database
+  
   const user = await prisma.user.create({
     data: {
       id: testUser.id,
       email: testUser.email,
-      password: hashedPassword,
       name: testUser.name,
+      password: hashedPassword,
       role: testUser.role,
       emailVerified: testUser.emailVerified,
     },
@@ -63,41 +83,37 @@ export async function deleteTestUser(email: string): Promise<void> {
  * Get authentication headers for a test user
  */
 export async function getAuthHeaders(user: TestUser): Promise<Record<string, string>> {
-  // First, get a CSRF token
-  const csrfResponse = await fetch('http://localhost:3000/api/csrf');
-  const csrfToken = csrfResponse.headers.getSetCookie()[0].split(';')[0].split('=')[1];
-
-  // Then, get a session token
-  const signInResponse = await fetch('http://localhost:3000/api/auth/callback/credentials', {
+  const csrfToken = await getCsrfToken();
+  
+  // First, log in the user to get the session cookie
+  const response = await fetch(`${baseUrl}/api/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-csrf-token': csrfToken,
+      'X-CSRF-Token': csrfToken,
     },
+    credentials: 'include',
     body: JSON.stringify({
       email: user.email,
       password: user.password,
-      redirect: false,
     }),
   });
 
-  if (!signInResponse.ok) {
-    throw new Error('Failed to authenticate test user');
+  if (!response.ok) {
+    throw new Error(`Failed to log in user: ${response.statusText}`);
   }
 
-  // Get the session cookie
-  const sessionCookie = signInResponse.headers.getSetCookie().find(cookie => 
-    cookie.startsWith('next-auth.session-token=')
-  );
-
-  if (!sessionCookie) {
-    throw new Error('No session cookie found in response');
+  // Get the session cookie from the response
+  const cookies = response.headers.get('set-cookie');
+  if (!cookies) {
+    throw new Error('No session cookie found in login response');
   }
 
+  // Return headers with CSRF token and session cookie
   return {
     'Content-Type': 'application/json',
-    'Cookie': sessionCookie,
-    'x-csrf-token': csrfToken,
+    'X-CSRF-Token': csrfToken,
+    'Cookie': cookies,
   };
 }
 
@@ -105,20 +121,11 @@ export async function getAuthHeaders(user: TestUser): Promise<Record<string, str
  * Clean up all test data
  */
 export async function cleanupTestData(): Promise<void> {
-  // Delete all test users (emails starting with 'test-')
+  // Delete all test users
   await prisma.user.deleteMany({
     where: {
       email: {
-        startsWith: 'test-',
-      },
-    },
-  });
-
-  // Delete all verification tokens
-  await prisma.verificationToken.deleteMany({
-    where: {
-      identifier: {
-        startsWith: 'test-',
+        contains: '@example.com',
       },
     },
   });
@@ -126,18 +133,14 @@ export async function cleanupTestData(): Promise<void> {
 
 // Clean up test data before exiting
 process.on('beforeExit', async () => {
-  await cleanupTestData();
-  await prisma.$disconnect();
+  try {
+    await cleanupTestData();
+    await prisma.$disconnect();
+  } catch (error) {
+    console.error('Error during cleanup:', error);
+    process.exit(1);
+  }
 });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+// Export Prisma client for direct database access in tests
+export { prisma };
