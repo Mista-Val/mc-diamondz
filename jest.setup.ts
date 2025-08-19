@@ -1,3 +1,7 @@
+// Import Jest globals
+import '@testing-library/jest-dom';
+import { expect, afterEach, beforeEach, jest } from '@jest/globals';
+
 // Import test environment setup
 import './tests/setup-env';
 
@@ -5,8 +9,10 @@ import './tests/setup-env';
 import './prisma/test-setup';
 
 // Mock next-auth
+const actualAuth = jest.requireActual('next-auth') as object;
+
 jest.mock('next-auth', () => ({
-  ...jest.requireActual('next-auth'),
+  ...actualAuth,
   getServerSession: jest.fn(() => ({
     user: {
       id: 'test-user-id',
@@ -93,13 +99,13 @@ jest.mock('next-auth/react', () => ({
 }));
 
 // Mock fetch
-global.fetch = jest.fn(() =>
+global.fetch = jest.fn(() => 
   Promise.resolve({
     ok: true,
     status: 200,
     json: () => Promise.resolve({}),
-  })
-) as jest.Mock;
+  } as Response)
+) as jest.MockedFunction<typeof fetch>;
 
 // Mock ResizeObserver
 class ResizeObserverStub {

@@ -29,7 +29,7 @@ export default function ClientLayout({
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <CartProvider>
           <Navbar onCartClick={() => setIsCartOpen(true)} />
-          <main className="flex-grow">
+          <main className="flex-grow pt-16">
             {children}
           </main>
           <Footer />

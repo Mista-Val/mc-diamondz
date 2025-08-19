@@ -24,15 +24,24 @@ export async function getCategoryBySlug(slug: string, includeProducts = false): 
       ...(includeProducts ? {
         products: {
           where: { isAvailable: true },
+          include: {
+            reviews: {
+              select: {
+                rating: true,
+              },
+            },
+            _count: {
+              select: {
+                reviews: true,
+              },
+            },
+          },
           select: {
             id: true,
             name: true,
             slug: true,
             price: true,
             images: true,
-            _count: {
-              select: { reviews: true },
-            },
           },
           orderBy: { name: 'asc' },
           take: 12, // Limit number of products to prevent large payloads
@@ -41,26 +50,23 @@ export async function getCategoryBySlug(slug: string, includeProducts = false): 
     },
   });
 
-  if (!category) {
-    return null;
-  }
+  if (!category) return null;
 
-  // Calculate average rating for each product if included
-  if (includeProducts && 'products' in category) {
+  if (includeProducts && category.products) {
     const productsWithRating = await Promise.all(
-      category.products.map(async (product) => {
+      category.products.map(async (product: { id: string; [key: string]: any }) => {
         const reviews = await prisma.review.findMany({
           where: { productId: product.id },
           select: { rating: true },
         });
 
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const totalRating = reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0);
         const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 
         return {
           ...product,
           averageRating: parseFloat(averageRating.toFixed(1)),
-          reviewCount: product._count.reviews,
+          reviewCount: product._count?.reviews || 0,
         };
       })
     );
@@ -71,7 +77,7 @@ export async function getCategoryBySlug(slug: string, includeProducts = false): 
     };
   }
 
-  return category as CategoryWithChildren;
+  return category;
 }
 
 export async function getCategoryTree(parentId: string | null = null): Promise<CategoryWithChildren[]> {
@@ -92,14 +98,25 @@ export async function getCategoryTree(parentId: string | null = null): Promise<C
       { order: 'asc' },
       { name: 'asc' },
     ],
-  });
+  }) as unknown as CategoryWithChildren[];
 
   // Recursively fetch children for each category
   const categoriesWithChildren = await Promise.all(
-    categories.map(async (category) => ({
-      ...category,
-      children: await getCategoryTree(category.id),
-    }))
+    categories.map(async (category) => {
+      const children = await getCategoryTree(category.id);
+      return {
+        ...category,
+        children: children.map(child => ({
+          id: child.id,
+          name: child.name,
+          slug: child.slug,
+          image: child.image,
+          _count: {
+            products: child._count?.products || 0
+          }
+        }))
+      };
+    })
   );
 
   return categoriesWithChildren;
@@ -111,7 +128,12 @@ export async function getBreadcrumbs(categoryId: string) {
 
   // Traverse up the category hierarchy
   while (currentId) {
-    const category = await prisma.category.findUnique({
+    const category: { 
+      id: string; 
+      name: string; 
+      slug: string; 
+      parentId: string | null 
+    } | null = await prisma.category.findUnique({
       where: { id: currentId },
       select: {
         id: true,
@@ -163,7 +185,7 @@ export async function getCategoryAncestors(categoryId: string): Promise<string[]
   let currentId: string | null = categoryId;
 
   while (currentId) {
-    const category = await prisma.category.findUnique({
+    const category: { parentId: string | null } | null = await prisma.category.findUnique({
       where: { id: currentId },
       select: { parentId: true },
     });

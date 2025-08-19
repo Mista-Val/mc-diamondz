@@ -40,8 +40,8 @@ export default function Navbar({ onCartClick }: NavbarProps) {
     <Disclosure
       as="nav"
       className={classNames(
-        'fixed w-full z-20 top-0 start-0 transition-all duration-300',
-        isScrolled ? 'bg-white shadow' : 'bg-transparent'
+        'fixed w-full z-20 top-0 left-0',
+        'bg-gradient-to-r from-blue-700 to-blue-900 shadow-md'
       )}
     >
       {({ open }) => (
@@ -49,13 +49,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                {/* Mobile menu button */}
-                <Disclosure.Button
-                  className={classNames(
-                    'inline-flex items-center justify-center rounded-md p-2',
-                    isScrolled || open ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'
-                  )}
-                >
+                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gold-400">
                   <span className="sr-only">Open main menu</span>
                   {open ? (
                     <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -67,13 +61,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
                   <Link href="/">
-                    <Image
-                      className="h-8 w-auto"
-                      src="/images/logo.png"
-                      alt="Sparkles & Styles Fashion Emporium"
-                      width={32}
-                      height={32}
-                    />
+                    <span className="text-2xl font-bold text-white">Sparkles & Styles</span>
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
@@ -84,11 +72,9 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                         href={item.href}
                         className={classNames(
                           item.current
-                            ? 'bg-indigo-600 text-white'
-                            : isScrolled
-                            ? 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                            : 'text-white hover:bg-white/10 hover:text-white',
-                          'rounded-md px-3 py-2 text-sm font-medium transition-colors'
+                            ? 'bg-blue-800 text-white'
+                            : 'text-white hover:bg-blue-800/50',
+                          'rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200'
                         )}
                         aria-current={item.current ? 'page' : undefined}
                       >
@@ -101,17 +87,14 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                 <button
                   type="button"
-                  className={classNames(
-                    'rounded-full p-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 relative transition-colors',
-                    isScrolled ? 'bg-white text-gray-700 hover:text-gray-900' : 'bg-transparent text-white hover:text-white/80'
-                  )}
+                  className="rounded-full p-2 text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-blue-700 relative"
                   onClick={onCartClick}
                 >
                   <span className="sr-only">View cart</span>
                   <ShoppingCartIcon className="h-6 w-6" aria-hidden="true" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-xs font-medium text-white">
-                      {itemCount > 9 ? '9+' : itemCount}
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-gold-500 text-xs font-bold text-blue-900">
+                      {itemCount}
                     </span>
                   )}
                 </button>
@@ -119,14 +102,9 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
-                    <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <Menu.Button className="flex rounded-full bg-blue-800/50 text-sm text-white focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-blue-700 p-1">
                       <span className="sr-only">Open user menu</span>
-                      <UserIcon
-                        className={classNames(
-                          'h-8 w-8 rounded-full p-1.5 transition-colors',
-                          isScrolled ? 'bg-gray-100 text-gray-700' : 'bg-white/10 text-white'
-                        )}
-                      />
+                      <UserIcon className="h-6 w-6" aria-hidden="true" />
                     </Menu.Button>
                   </div>
                   <Transition
@@ -142,8 +120,11 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                       <Menu.Item>
                         {({ active }) => (
                           <Link
-                            href="/account"
-                            className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}
+                            href="/profile"
+                            className={classNames(
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm text-gray-700'
+                            )}
                           >
                             Your Profile
                           </Link>
@@ -153,22 +134,39 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                         {({ active }) => (
                           <Link
                             href="/orders"
-                            className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}
+                            className={classNames(
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm text-gray-700'
+                            )}
                           >
-                            Your Orders
+                            Orders
                           </Link>
                         )}
                       </Menu.Item>
                       <Menu.Item>
                         {({ active }) => (
-                          <button
+                          <Link
+                            href="/order-status"
                             className={classNames(
                               active ? 'bg-gray-100' : '',
-                              'block w-full px-4 py-2 text-left text-sm text-gray-700'
+                              'block px-4 py-2 text-sm text-gray-700'
+                            )}
+                          >
+                            View Order Status
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
+                          <Link
+                            href="/signout"
+                            className={classNames(
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm text-gray-700'
                             )}
                           >
                             Sign out
-                          </button>
+                          </Link>
                         )}
                       </Menu.Item>
                     </Menu.Items>
@@ -183,10 +181,12 @@ export default function Navbar({ onCartClick }: NavbarProps) {
               {navigation.map((item) => (
                 <Disclosure.Button
                   key={item.name}
-                  as="a"
+                  as={Link}
                   href={item.href}
                   className={classNames(
-                    item.current ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                    item.current
+                      ? 'bg-blue-800 text-white'
+                      : 'text-white hover:bg-blue-800/50',
                     'block rounded-md px-3 py-2 text-base font-medium'
                   )}
                   aria-current={item.current ? 'page' : undefined}

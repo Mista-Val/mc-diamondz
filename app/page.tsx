@@ -8,8 +8,8 @@ export default function Home() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative bg-gray-900">
-        <div className="relative h-80 overflow-hidden bg-indigo-800 md:absolute md:right-0 md:h-full md:w-1/2 lg:w-2/3">
+      <div className="relative bg-gray-900 w-full">
+        <div className="relative h-80 w-full overflow-hidden bg-indigo-800 md:absolute md:right-0 md:h-full md:w-1/2 lg:w-2/3">
           <Image
             src="/images/hero/hero-bg.jpg"
             alt="African Fashion"
@@ -20,8 +20,8 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-indigo-700 mix-blend-multiply" aria-hidden="true" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <div className="md:ml-auto md:w-1/2 md:pl-10">
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="w-full md:ml-auto md:w-1/2 md:pl-10">
             <h2 className="text-base font-semibold uppercase tracking-wider text-gray-300">
               Premium African Fashion
             </h2>

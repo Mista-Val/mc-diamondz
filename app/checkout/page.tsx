@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { LockClosedIcon, ShieldCheckIcon, TruckIcon } from '@heroicons/react/24/outline';
+import PaymentButton from '@/components/PaymentButton';
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -23,24 +24,6 @@ const CheckoutPage = () => {
     saveInfo: false,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // In a real app, you would process the payment here
-      // For now, we'll just simulate a successful payment
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Clear the cart and redirect to success page
-      clearCart();
-      router.push('/checkout/success');
-    } catch (error) {
-      console.error('Checkout failed:', error);
-      setIsLoading(false);
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
@@ -49,6 +32,44 @@ const CheckoutPage = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const handlePaymentSuccess = async (response: any) => {
+    // Handle successful payment
+    console.log('Payment successful:', response);
+    
+    // Submit the form data to your backend
+    try {
+      const result = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          paymentReference: response.transaction_id || response.tx_ref,
+          paymentStatus: 'paid',
+          items: items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        }),
+      });
+
+      const order = await result.json();
+      
+      // Redirect to order confirmation page
+      router.push(`/order-confirmation/${order.id}`);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Handle error - show error message to user
+    }
+  };
+
+  const handlePaymentClose = () => {
+    // Handle when user closes the payment modal
+    console.log('Payment modal closed');
   };
 
   if (items.length === 0) {
@@ -83,7 +104,7 @@ const CheckoutPage = () => {
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">Checkout</h2>
           
-          <form onSubmit={handleSubmit} className="mt-8">
+          <form className="mt-8">
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900">Contact information</h3>
@@ -365,15 +386,17 @@ const CheckoutPage = () => {
             </div>
 
             <div className="mt-10">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
-                }`}
-              >
-                {isLoading ? 'Processing...' : 'Complete Order'}
-              </button>
+              <PaymentButton
+                amount={total * 100} // Convert to kobo
+                email={formData.email}
+                name={`${formData.firstName} ${formData.lastName}`}
+                phone={formData.phone}
+                onSuccess={handlePaymentSuccess}
+                onClose={handlePaymentClose}
+                disabled={items.length === 0 || isLoading}
+                buttonText={isLoading ? 'Processing...' : 'Proceed To Payment'}
+                className="w-full"
+              />
             </div>
           </form>
         </div>

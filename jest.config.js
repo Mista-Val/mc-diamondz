@@ -20,6 +20,14 @@ const customJestConfig = {
   moduleDirectories: ['node_modules', '<rootDir>/'],
   testEnvironment: 'jsdom',
   
+  // Transform settings
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+  },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(react-markdown|vfile|vfile-message|unist-util-stringify-position|unist-util-position|unist-util-generated|unist-util-position-from-estree|unist-util-remove-position|unist-util-visit|unist-util-visit-parents|unist-util-is|unist-util-is|unist-util-stringify-position|unist-util-visit|unist-util-visit-parents|unist-util-is|unist-util-stringify-position|unist-util-visit|unist-util-visit-parents|unist-util-is|unist-util-stringify-position|unist-util-visit|unist-util-visit-parents|unist-util-is|unist-util-stringify-position|unist-util-visit|unist-util-visit-parents|unist-util-is)/)',
+  ],
+  
   // Module name mapper for path aliases
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
@@ -29,27 +37,17 @@ const customJestConfig = {
     '^@/types/(.*)$': '<rootDir>/types/$1',
     '^@/prisma/(.*)$': '<rootDir>/prisma/$1',
     '^@/tests/(.*)$': '<rootDir>/tests/$1',
-    '^@/app/(.*)$': '<rootDir>/app/$1',
-    '^@/context/(.*)$': '<rootDir>/context/$1',
     '^@/emails/(.*)$': '<rootDir>/emails/$1',
-    '^@/hooks/(.*)$': '<rootDir>/hooks/$1',
-    '^@/public/(.*)$': '<rootDir>/public/$1',
+    '^@/app/(.*)$': '<rootDir>/app/$1',
   },
   
-  // Ignore paths
-  testPathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/.next/',
-    '<rootDir>/cypress/',
-    '<rootDir>/coverage/',
+  // Test file patterns
+  testMatch: [
+    '**/__tests__/**/*.test.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
   
-  // Transform settings
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
-  },
-  
-  // Test coverage settings
+  // Coverage settings
   collectCoverage: true,
   collectCoverageFrom: [
     '**/*.{js,jsx,ts,tsx}',
@@ -57,73 +55,19 @@ const customJestConfig = {
     '!**/node_modules/**',
     '!**/.next/**',
     '!**/coverage/**',
-    '!**/cypress/**',
-    '!**/pages/_app.tsx',
-    '!**/pages/_document.tsx',
     '!**/jest.config.js',
     '!**/next.config.js',
-    '!**/jest.setup.ts',
-    '!**/jest.polyfills.js',
-    '!**/middleware.ts',
-    '!**/app/layout.tsx',
-    '!**/app/globals.css',
-    '!**/app/error.tsx',
-    '!**/app/not-found.tsx',
-    '!**/app/loading.tsx',
+    '!**/tailwind.config.js',
+    '!**/postcss.config.js',
+    '!**/babel.config.js',
   ],
-  coverageReporters: ['json', 'lcov', 'text', 'clover'],
-  coverageDirectory: 'coverage',
+  
+  // Global setup and teardown
+  globalSetup: '<rootDir>/jest.global-setup.js',
+  globalTeardown: '<rootDir>/jest.global-teardown.js',
   
   // Test timeout
-  testTimeout: 30000,
-  
-  // Test environment options
-  testEnvironmentOptions: {
-    url: 'http://localhost',
-  },
-  
-  // Fake timers configuration
-  fakeTimers: {
-    enableGlobally: true,
-  },
-  
-  // Reset mocks between tests
-  resetMocks: true,
-  
-  // Clear mock calls and instances between tests
-  clearMocks: true,
-  
-  // The maximum amount of workers used to run your tests
-  maxWorkers: '50%',
-  
-  // Module file extensions for importing
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  
-  // An array of regexp pattern strings that are matched against all module paths before considered 'visible' to the module loader
-  modulePathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/coverage/',
-    '<rootDir>/node_modules/'
-  ],
-  
-  // The glob patterns Jest uses to detect test files
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[tj]s?(x)'
-  ],
-  
-  // Indicates whether each individual test should be reported during the run
-  verbose: true,
-  
-  // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
-  watchPathIgnorePatterns: [
-    '/node_modules/'
-  ],
-  
-  // Setup files
-  setupFiles: [
-    '<rootDir>/jest.polyfills.js',
-  ],
+  testTimeout: 10000,
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

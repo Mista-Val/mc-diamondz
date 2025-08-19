@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from '@/auth';
+import { signIn, getProviders } from 'next-auth/react';
 
 type Provider = {
   id: string;
@@ -40,7 +40,14 @@ const SignInPage = () => {
         <form
           action={async (formData) => {
             'use server';
-            await signIn('credentials', formData);
+            const email = formData.get('email');
+            const password = formData.get('password');
+            await signIn('credentials', {
+              email,
+              password,
+              redirect: true,
+              callbackUrl
+            });
           }}
           className="space-y-6"
         >

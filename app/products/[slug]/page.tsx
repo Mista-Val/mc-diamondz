@@ -1,12 +1,17 @@
 import { StarIcon } from '@heroicons/react/20/solid';
 import { ShieldCheckIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
+import { Metadata } from 'next';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the client component with no SSR
+const ProductForm = dynamic(() => import('./ProductForm'), { ssr: false });
 
 export default function ProductDetail() {
   // In a real app, this would be fetched from an API
   const product = {
     name: 'African Print Maxi Dress',
-    price: '₦25,000',
+    price: 25000,
     rating: 4.8,
     reviewCount: 128,
     href: '#',
@@ -28,12 +33,20 @@ export default function ProductDetail() {
       <p>Features:</p>
       <ul>
         <li>• Made with authentic African wax print fabric</li>
-        <li>• Flattering A-line silhouette with a defined waist</n        <li>• Comfortable and breathable cotton material</li>
+        <li>• Flattering A-line silhouette with a defined waist</li>
+        <li>• Comfortable and breathable cotton material</li>
         <li>• Handcrafted with attention to detail</li>
         <li>• Machine washable (cold water, gentle cycle)</li>
       </ul>
     `,
     details: [
+      '100% Cotton',
+      'Made in Nigeria',
+      'Hand wash with cold water',
+      'Line dry in shade',
+      'Iron on low heat',
+    ],
+    highlights: [
       '100% Cotton',
       'Made in Nigeria',
       'Hand wash with cold water',
@@ -85,7 +98,7 @@ export default function ProductDetail() {
 
             <div className="mt-3">
               <h2 className="sr-only">Product information</h2>
-              <p className="text-3xl tracking-tight text-gray-900">{product.price}</p>
+              <p className="text-3xl tracking-tight text-gray-900">{product.price.toLocaleString()}</p>
             </div>
 
             {/* Reviews */}
@@ -119,110 +132,22 @@ export default function ProductDetail() {
               />
             </div>
 
-            <form className="mt-6">
-              {/* Colors */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">Color</h3>
+            {/* Product form - Client Component */}
+            <ProductForm product={product} />
 
-                <fieldset className="mt-4">
-                  <legend className="sr-only">Choose a color</legend>
-                  <div className="flex items-center space-x-3">
-                    {product.colors.map((color) => (
-                      <label
-                        key={color.name}
-                        className={`relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none ring-gray-400`}
-                      >
-                        <input type="radio" name="color-choice" value={color.name} className="sr-only" />
-                        <span
-                          aria-hidden="true"
-                          className={`h-8 w-8 rounded-full border border-black border-opacity-10 ${color.bgColor}`}
-                        />
-                        <span className="sr-only">{color.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
+            {/* Product details */}
+            <div className="mt-10">
+              <h3 className="text-sm font-medium text-gray-900">Highlights</h3>
+              <div className="mt-4">
+                <ul role="list" className="list-disc space-y-2 pl-4 text-sm">
+                  {product.highlights.map((highlight) => (
+                    <li key={highlight} className="text-gray-400">
+                      <span className="text-gray-600">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              {/* Sizes */}
-              <div className="mt-10">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-900">Size</h3>
-                  <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                    Size guide
-                  </a>
-                </div>
-
-                <fieldset className="mt-4">
-                  <legend className="sr-only">Choose a size</legend>
-                  <div className="grid grid-cols-4 gap-4 sm:grid-cols-8 lg:grid-cols-4">
-                    {product.sizes.map((size) => (
-                      <div
-                        key={size.name}
-                        className={`${
-                          size.inStock
-                            ? 'cursor-pointer bg-white text-gray-900 shadow-sm'
-                            : 'cursor-not-allowed bg-gray-50 text-gray-200'
-                        } group relative flex items-center justify-center rounded-md border py-3 px-4 text-sm font-medium uppercase hover:bg-gray-50 focus:outline-none sm:flex-1`}
-                      >
-                        <input
-                          type="radio"
-                          name="size-choice"
-                          value={size.name}
-                          disabled={!size.inStock}
-                          className="sr-only"
-                        />
-                        {size.inStock && (
-                          <span>{size.name}</span>
-                        )}
-                        {!size.inStock && (
-                          <span aria-hidden="true" className="pointer-events-none absolute -inset-px rounded-md border-2 border-gray-200">
-                            <svg
-                              className="absolute inset-0 h-full w-full stroke-2 text-gray-200"
-                              viewBox="0 0 100 100"
-                              preserveAspectRatio="none"
-                              stroke="currentColor"
-                            >
-                              <line x1={0} y1={100} x2={100} y2={0} vectorEffect="non-scaling-stroke" />
-                            </svg>
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </fieldset>
-              </div>
-
-              <div className="mt-10 flex">
-                <button
-                  type="submit"
-                  className="flex max-w-xs flex-1 items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 sm:w-full"
-                >
-                  Add to bag
-                </button>
-
-                <button
-                  type="button"
-                  className="ml-4 flex items-center justify-center rounded-md px-3 py-3 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-6 w-6 flex-shrink-0"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                    />
-                  </svg>
-                  <span className="sr-only">Add to favorites</span>
-                </button>
-              </div>
-            </form>
+            </div>
 
             <section className="mt-12 pt-6 border-t border-gray-200">
               <h3 className="text-sm font-medium text-gray-900">Fabric & Care</h3>
@@ -263,3 +188,8 @@ export default function ProductDetail() {
     </div>
   );
 }
+
+export const metadata = {
+  title: 'Product Detail',
+  description: 'Product detail page',
+};
