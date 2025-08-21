@@ -1,46 +1,60 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { products } from '@/lib/data';
+import { AnimatedTextBackground } from '@/components/AnimatedTextBackground';
 
 export default function Home() {
-  const featuredProducts = products.slice(0, 4);
+  const featuredProducts = products.slice(0, 6);
 
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative bg-gray-900 w-full">
-        <div className="relative h-80 w-full overflow-hidden bg-indigo-800 md:absolute md:right-0 md:h-full md:w-1/2 lg:w-2/3">
-          <Image
-            src="/images/hero/hero-bg.jpg"
-            alt="African Fashion"
-            className="h-full w-full object-cover object-center"
-            width={1920}
-            height={1080}
-            priority
-          />
-          <div className="absolute inset-0 bg-indigo-700 mix-blend-multiply" aria-hidden="true" />
+      <div className="relative h-screen overflow-hidden bg-gray-900">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <div className="relative h-full w-full">
+            <Image
+              src="/images/hero/hero-bg.jpg"
+              alt="African Fashion"
+              className="h-full w-full object-cover object-center"
+              fill
+              priority
+              onError={(e) => {
+                // Fallback to a solid background if image fails to load
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNxYzFmMjEiLz48L3N2Zz4=';
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-900/70 mix-blend-multiply" />
+          </div>
         </div>
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <div className="w-full md:ml-auto md:w-1/2 md:pl-10">
-            <h2 className="text-base font-semibold uppercase tracking-wider text-gray-300">
+
+        {/* Animated Text Background */}
+        <AnimatedTextBackground />
+
+        {/* Content */}
+        <div className="relative z-10 mx-auto h-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-40">
+          <div className="max-w-2xl lg:mx-0 lg:max-w-xl">
+            <p className="text-base font-semibold uppercase tracking-wider text-indigo-400">
               Premium African Fashion
-            </h2>
-            <p className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Discover Our Latest Collection
             </p>
-            <p className="mt-3 text-lg text-gray-300">
-              Handcrafted with love and tradition. Explore our unique pieces that celebrate African heritage.
+            <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Elevate Your Style with Authentic African Designs
+            </h1>
+            <p className="mt-6 text-lg leading-8 text-gray-300">
+              Discover handcrafted pieces that celebrate the rich heritage and vibrant culture of Africa. Each item tells a story of tradition and craftsmanship.
             </p>
-            <div className="mt-8">
-              <div className="inline-flex rounded-md shadow">
-                <Link
-                  href="/shop"
-                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-indigo-600 hover:bg-gray-50"
-                >
-                  Shop Now
-                  <span className="ml-2">→</span>
-                </Link>
-              </div>
+            <div className="mt-10 flex items-center gap-x-6">
+              <Link
+                href="/shop"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                Shop Now
+              </Link>
+              <Link href="/about" className="text-sm font-semibold leading-6 text-white">
+                Learn more <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         </div>

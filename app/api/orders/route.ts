@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-// This would typically connect to your database
-const orders: any[] = [];
+// This would typically be a database connection
+export const orders: any[] = [];
 
 export async function POST(request: Request) {
   try {
@@ -37,5 +37,6 @@ export async function POST(request: Request) {
 
 export async function GET() {
   // In a real app, you would fetch orders from your database
+  console.log('Current orders:', orders);
   return NextResponse.json(orders);
 }
