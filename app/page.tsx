@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { products } from '@/lib/data';
 import { AnimatedTextBackground } from '@/components/AnimatedTextBackground';
+import HeroImage from '@/components/HeroImage'; // Import the new HeroImage component
 
 export default function Home() {
   const featuredProducts = products.slice(0, 6);
@@ -13,19 +14,7 @@ export default function Home() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <div className="relative h-full w-full">
-            <Image
-              src="/images/hero/hero-bg.jpg"
-              alt="African Fashion"
-              className="h-full w-full object-cover object-center"
-              fill
-              priority
-              onError={(e) => {
-                // Fallback to a solid background if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIwIiBoZWlnaHQ9IjEwODAiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNxYzFmMjEiLz48L3N2Zz4=';
-              }}
-            />
+            <HeroImage />
             <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-900/70 mix-blend-multiply" />
           </div>
         </div>

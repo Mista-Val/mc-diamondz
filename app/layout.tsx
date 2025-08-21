@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 import ClientLayout from './ClientLayout';
+import { CartProvider } from '@/context/CartContext';
 
 export const metadata: Metadata = {
   title: 'Sparkles & Styles hub Fashion Emporium',
@@ -26,7 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <ClientLayout>
-      {children}
+      <CartProvider>
+        {children}
+      </CartProvider>
     </ClientLayout>
   );
 }
